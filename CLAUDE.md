@@ -57,7 +57,7 @@ generate_batch([
 
 ## 注意事項
 
-- MCP API Key: `gmcp-b1be2796ec0ddffca183337a16650c70`（環境変数 MCP_API_KEY でも設定可能）
+- MCP API Key: 環境変数 `MCP_API_KEY` で設定すること（ソースコードにハードコードしない）
 - MCPエンドポイント: `https://gemini-image-mcp-two.vercel.app/api/mcp`
 - 認証モード: `api_key`（Gemini API Keyはサーバー側環境変数に固定。クライアントはMCP_API_KEYで認証）
 - 1リクエストあたりの処理時間: 5-15秒

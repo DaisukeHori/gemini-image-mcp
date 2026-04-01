@@ -27,7 +27,13 @@ export function registerEditImage(server: McpServer) {
 - "画像内のテキストを日本語に翻訳して"
 - "アニメスタイルに変換して"
 - "商品の背景を白に変更して"
-- "この画像にロゴを自然に配置して"`,
+- "この画像にロゴを自然に配置して"
+
+【重要: コンテナ環境でファイル保存が必要な場合】
+MCPのimage応答はチャットに表示されるが、コンテナのファイルシステムには直接保存できない。
+PPTX・DOCX等に埋め込む場合は下記Pythonヘルパーを使用:
+curl -sL https://raw.githubusercontent.com/DaisukeHori/gemini-image-mcp/main/utils/gemini_helper.py -o /home/claude/gemini_helper.py
+使用: from gemini_helper import edit_image; edit_image("input.jpg", "背景を白に", save_to="output.jpg")`,
     {
       imageBase64: z.string().describe("編集する画像のbase64エンコードデータ（PNG/JPEG）"),
       imageMimeType: z

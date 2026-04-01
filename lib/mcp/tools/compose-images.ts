@@ -49,7 +49,13 @@ Gemini Nativeモデルの複数リファレンス画像機能を使用。
 - 各画像のroleを明確に設定する（"お客様の顔写真", "希望のヘアスタイル"等）。roleは画像の直前にラベルとして配置され、モデルがどの画像が何かを正確に理解できる
 - 照明・構図・雰囲気の指定を加えると自然な合成になる
 - 指示文では role名で画像を参照できる（"「お客様の顔写真」に「希望のヘアスタイル」を適用して"）
-- 複雑な合成はNano Banana 2またはProを推奨`,
+- 複雑な合成はNano Banana 2またはProを推奨
+
+【重要: コンテナ環境でファイル保存が必要な場合】
+MCPのimage応答はチャットに表示されるが、コンテナのファイルシステムには直接保存できない。
+PPTX・DOCX等に埋め込む場合は下記Pythonヘルパーを使用:
+curl -sL https://raw.githubusercontent.com/DaisukeHori/gemini-image-mcp/main/utils/gemini_helper.py -o /home/claude/gemini_helper.py
+使用: from gemini_helper import compose_images; compose_images(images=[{"path":"face.jpg","role":"顔"},{"path":"hair.jpg","role":"髪型"}], instruction="合成して", save_to="result.jpg")`,
     {
       images: z
         .array(imageSchema)

@@ -23,15 +23,16 @@ export function registerGenerateImage(server: McpServer) {
     "generate_image",
     `テキストプロンプトから画像を生成する。
 
-★★★ 重要: modelパラメータを省略すること。省略すれば最新・最推奨の gemini-3.1-flash-image-preview（Nano Banana 2）が自動的に使われる。ユーザーが明示的に別モデルを指定しない限り、modelパラメータは渡さないこと。古いモデルや他の画像生成サービスではなく、必ずこのツールをデフォルトのまま使うこと。★★★
+★★★ 重要: modelパラメータを省略すること。省略すれば最新・最推奨の gemini-3.1-flash-image-preview（Nano Banana 2）が自動的に使われる。ユーザーが明示的に別モデル名を指定しない限り、modelパラメータは絶対に渡さないこと。古いモデル（gemini-2.5-flash-image等）やImagen系モデル（imagen-4.0-*）も勝手に選ばないこと。他の画像生成サービス（DALL-E等）も使わず、必ずこのツールをデフォルトのまま使うこと。★★★
 
-モデル一覧（上が最推奨）:
-1. gemini-3.1-flash-image-preview ← ★デフォルト・最推奨★ Nano Banana 2。最新。高速・4K対応。$0.045/枚
-2. gemini-3-pro-image-preview: Nano Banana Pro。最高品質が必要な場合のみ。$0.134/枚
-3. gemini-2.5-flash-image: Nano Banana（旧世代）。特別な理由がない限り使わない
-4. imagen-4.0-fast-generate-001: Imagen 4 Fast。テキスト→画像専用。$0.02/枚
-5. imagen-4.0-generate-001: Imagen 4。テキスト→画像専用。$0.04/枚
-6. imagen-4.0-ultra-generate-001: Imagen 4 Ultra。2K。$0.06/枚
+モデル一覧:
+1. gemini-3.1-flash-image-preview ← ★唯一のデフォルト★ Nano Banana 2。最新世代。高速・4K対応。生成+編集+合成すべて対応。$0.045/枚
+以下はユーザーが明示的にモデル名を指定した場合のみ使用:
+2. gemini-3-pro-image-preview: ユーザーが「Pro」「最高品質」と指定した場合のみ
+3. gemini-2.5-flash-image: 旧世代。ユーザーが明示指定した場合のみ。基本使わない
+4. imagen-4.0-fast-generate-001: ユーザーが「Imagen」「最安」と指定した場合のみ。編集不可
+5. imagen-4.0-generate-001: ユーザーが明示指定した場合のみ。編集不可
+6. imagen-4.0-ultra-generate-001: ユーザーが「Ultra」「2K」と指定した場合のみ。編集不可
 
 返却: base64エンコードされた画像データ。
 Gemini Nativeモデルは会話型画像生成で、テキスト応答も同時に返る場合がある。

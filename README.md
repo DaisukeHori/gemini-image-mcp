@@ -144,6 +144,43 @@ npm run dev
 **Q: Claudeの会話内で画像が表示される？**
 → MCPプロトコルのimage content typeで返却するため、対応クライアントでは画像が直接表示されます。
 
+## Pythonヘルパー（コンテナ環境向け）
+
+Claude.aiのコンテナ環境等で画像をファイルシステムに保存したい場合、`utils/gemini_helper.py` を使えます。
+
+```bash
+# ダウンロード
+curl -sL https://raw.githubusercontent.com/DaisukeHori/gemini-image-mcp/main/utils/gemini_helper.py -o gemini_helper.py
+```
+
+```python
+from gemini_helper import generate_image, edit_image, compose_images, generate_batch
+
+# 画像生成→ファイル保存
+generate_image("A sunset over Mount Fuji", save_to="fuji.jpg")
+
+# 画像編集
+edit_image("fuji.jpg", "水墨画スタイルに変換", save_to="fuji_ink.jpg")
+
+# 複数画像合成（顔+ヘアスタイル等）
+compose_images(
+    images=[
+        {"path": "face.jpg", "role": "顔写真"},
+        {"path": "hair.jpg", "role": "ヘアスタイル"},
+    ],
+    instruction="顔写真にヘアスタイルを適用して",
+    save_to="result.jpg"
+)
+
+# バッチ生成（PPTX挿絵50枚等）
+generate_batch([
+    {"prompt": "スライド1の挿絵", "filename": "slide01.jpg"},
+    {"prompt": "スライド2の挿絵", "filename": "slide02.jpg"},
+], output_dir="images")
+```
+
+MCPサーバー（Vercel）をHTTPプロキシとして使い、`generativelanguage.googleapis.com` がブロックされたコンテナ環境でもGemini APIを利用できます。
+
 ## 技術スタック
 
 Next.js 15 / TypeScript / Vercel / MCP SDK / Gemini API / Zod

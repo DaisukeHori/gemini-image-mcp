@@ -30,7 +30,7 @@ import os
 from typing import Optional
 
 MCP_URL = "https://gemini-image-mcp-two.vercel.app/api/mcp"
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDgv-dHmyLyOqL6NVQV9nuMfJXIbQ9HIFs")
+MCP_API_KEY = os.environ.get("MCP_API_KEY", "gmcp-b1be2796ec0ddffca183337a16650c70")
 
 
 def _call_mcp(tool_name: str, arguments: dict, timeout: int = 120) -> dict:
@@ -45,7 +45,7 @@ def _call_mcp(tool_name: str, arguments: dict, timeout: int = 120) -> dict:
     req = urllib.request.Request(MCP_URL, data=body, headers={
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream",
-        "Authorization": f"Bearer {GEMINI_KEY}"
+        "Authorization": f"Bearer {MCP_API_KEY}"
     })
 
     resp = urllib.request.urlopen(req, timeout=timeout)

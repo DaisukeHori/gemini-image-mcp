@@ -46,8 +46,9 @@ Gemini Nativeモデルの複数リファレンス画像機能を使用。
 - gemini-2.5-flash-image: Nano Banana。コスト最適。シンプルな合成向き
 
 合成指示のコツ:
-- 各画像の役割を明確に指示する（"1枚目の人物に2枚目のヘアスタイルを適用して"）
+- 各画像のroleを明確に設定する（"お客様の顔写真", "希望のヘアスタイル"等）。roleは画像の直前にラベルとして配置され、モデルがどの画像が何かを正確に理解できる
 - 照明・構図・雰囲気の指定を加えると自然な合成になる
+- 指示文では role名で画像を参照できる（"「お客様の顔写真」に「希望のヘアスタイル」を適用して"）
 - 複雑な合成はNano Banana 2またはProを推奨`,
     {
       images: z
@@ -75,34 +76,37 @@ Gemini Nativeモデルの複数リファレンス画像機能を使用。
       try {
         const selectedModel = model || "gemini-3.1-flash-image-preview";
 
-        // 画像の役割情報をプロンプトに組み込む
-        const rolesDescription = images
-          .map((img, idx) => {
-            const role = img.role || `画像${idx + 1}`;
-            return `画像${idx + 1}: ${role}`;
-          })
-          .join("\n");
+        // ContentParts を構築: テキスト-画像交互配置でラベリング精度を上げる
+        // [全体指示] → [ラベル1] → [画像1] → [ラベル2] → [画像2] → ... → [合成指示]
+        const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
 
-        const fullPrompt = `以下の${images.length}枚の画像を使って合成してください。
+        // 1. 全体の導入
+        parts.push({
+          text: `以下の${images.length}枚の画像を使って合成画像を生成してください。各画像の直前にその画像の役割を記載しています。`,
+        });
 
-【各画像の役割】
-${rolesDescription}
-
-【合成指示】
-${instruction}
-
-重要: 合成結果は自然で違和感のない1枚の画像にしてください。照明、色調、パースペクティブの一貫性を保ってください。`;
-
-        // ContentParts を構築: テキスト + 全画像
-        const parts = [
-          { text: fullPrompt },
-          ...images.map((img) => ({
+        // 2. ラベル → 画像 を交互に配置
+        for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          const role = img.role || `画像${i + 1}`;
+          parts.push({
+            text: `【${role}】（${i + 1}枚目/${images.length}枚中）以下がその画像です:`,
+          });
+          parts.push({
             inlineData: {
               mimeType: img.mimeType || "image/png",
               data: img.base64,
             },
-          })),
-        ];
+          });
+        }
+
+        // 3. 最後に合成指示
+        parts.push({
+          text: `【合成指示】
+${instruction}
+
+重要: 合成結果は自然で違和感のない1枚の画像にしてください。照明、色調、パースペクティブの一貫性を保ってください。`,
+        });
 
         const result = await generateWithGeminiNative(selectedModel, parts);
 

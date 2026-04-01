@@ -26,7 +26,12 @@ const mcpHandler = createMcpHandler(
   (server) => {
     registerAllTools(server);
   },
-  {},
+  {
+    serverInfo: {
+      name: "gemini-image-mcp-server",
+      version: "1.0.0",
+    },
+  },
   {
     basePath: "/api",
     maxDuration: 60,

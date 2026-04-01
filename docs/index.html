@@ -74,8 +74,8 @@ body{font-family:'Lexend Deca',-apple-system,BlinkMacSystemFont,sans-serif;color
     <p class="hero__sub">Gemini / Imagen の画像生成AIを、Claude・Cursor・Windsurf等あらゆるMCPクライアントから使えるサーバー。接続するだけ。</p>
     <div class="hero__endpoint">
       <span style="color:var(--g-text-light);font-size:12px">ENDPOINT</span>
-      <span>https://gemini-image-mcp.vercel.app/api/mcp</span>
-      <button class="btn btn--primary" onclick="navigator.clipboard.writeText('https://gemini-image-mcp.vercel.app/api/mcp');this.textContent='✓ コピー';setTimeout(()=>this.textContent='コピー',2000)">コピー</button>
+      <span>https://gemini-image-mcp-two.vercel.app/api/mcp</span>
+      <button class="btn btn--primary" onclick="navigator.clipboard.writeText('https://gemini-image-mcp-two.vercel.app/api/mcp');this.textContent='✓ コピー';setTimeout(()=>this.textContent='コピー',2000)">コピー</button>
     </div>
   </div>
 </section>
@@ -148,7 +148,7 @@ body{font-family:'Lexend Deca',-apple-system,BlinkMacSystemFont,sans-serif;color
     <div class="card"><h4>① Gemini API Key を取得</h4><p><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--g-blue)">Google AI Studio</a> → API Keyを作成してコピー。無料枠あり。</p></div>
     <div class="card"><h4>② MCPサーバーに接続</h4>
       <p>お使いのAIクライアントに以下を設定:</p>
-      <div class="code-block">URL: https://gemini-image-mcp.vercel.app/api/mcp
+      <div class="code-block">URL: https://gemini-image-mcp-two.vercel.app/api/mcp
 Authorization: Bearer &lt;your-gemini-api-key&gt;</div>
       <p style="margin-top:8px;font-size:13px;color:var(--g-text-light)">Claude Desktop/Cursor/VS Codeの場合は <a href="https://github.com/DaisukeHori/gemini-image-mcp#ステップ2-mcpサーバーを接続" style="color:var(--g-blue)">README</a> を参照</p>
     </div>

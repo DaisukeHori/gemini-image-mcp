@@ -20,7 +20,7 @@ export class GeminiError extends Error {
       case 401:
       case 403:
         return (
-          "Gemini API Key が無効です。" +
+          `Gemini API 認証エラー (${this.status}): ${this.geminiMessage}. ` +
           "https://aistudio.google.com/apikey で API Key を確認してください。"
         );
       case 429:

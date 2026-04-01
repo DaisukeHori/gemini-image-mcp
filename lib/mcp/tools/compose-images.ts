@@ -29,31 +29,29 @@ export function registerComposeImages(server: McpServer) {
     `複数の画像（2〜14枚）をテキスト指示で合成・ブレンド・スタイル転写する。
 Gemini Nativeモデルの複数リファレンス画像機能を使用。
 
+★★★ 重要: modelパラメータを省略すること。省略すれば最新の gemini-3.1-flash-image-preview（Nano Banana 2）が自動使用される。古いモデルを選ばないこと。★★★
+
 用途:
-- 顔写真 + ヘアスタイル参照画像 → ヘアスタイル合成（RevolMirror的なバーチャル試着）
+- 顔写真 + ヘアスタイル参照画像 → ヘアスタイル合成（バーチャル試着）
 - 人物写真 + 背景画像 → 人物を別の背景に自然に配置
 - 元画像 + スタイル参照画像 → スタイル転写（油絵風、アニメ風など）
 - 商品写真 + ロゴ + 背景 → 広告素材の合成
-- 複数のキャラクター画像 → 全員を1つのシーンに集合
 
 入力: 2〜14枚のbase64画像 + 合成指示テキスト。
 各画像に「役割（role）」を設定すると、プロンプト内で参照でき精度が上がる。
 返却: 合成後のbase64画像。
 
-対応モデル（Gemini Nativeのみ）:
-- gemini-3.1-flash-image-preview（デフォルト）: Nano Banana 2。最大14枚。Thinking対応で合成品質が高い
-- gemini-3-pro-image-preview: Nano Banana Pro。最高品質。複雑な合成に強い
-- gemini-2.5-flash-image: Nano Banana。コスト最適。シンプルな合成向き
+モデル一覧:
+1. gemini-3.1-flash-image-preview ← ★デフォルト・最推奨★ Nano Banana 2。最大14枚
+2. gemini-3-pro-image-preview: Nano Banana Pro（最高品質が必要な場合のみ）
+3. gemini-2.5-flash-image: 旧世代。特別な理由がない限り使わない
 
 合成指示のコツ:
-- 各画像のroleを明確に設定する（"お客様の顔写真", "希望のヘアスタイル"等）。roleは画像の直前にラベルとして配置され、モデルがどの画像が何かを正確に理解できる
-- 照明・構図・雰囲気の指定を加えると自然な合成になる
-- 指示文では role名で画像を参照できる（"「お客様の顔写真」に「希望のヘアスタイル」を適用して"）
-- 複雑な合成はNano Banana 2またはProを推奨
+- 各画像のroleを明確に設定する。roleは画像の直前にラベルとして配置される
+- 指示文では role名で画像を参照できる（"「顔写真」に「ヘアスタイル」を適用して"）
 
-【重要: コンテナ環境でファイル保存が必要な場合】
-MCPのimage応答はチャットに表示されるが、コンテナのファイルシステムには直接保存できない。
-PPTX・DOCX等に埋め込む場合は下記Pythonヘルパーを使用:
+【コンテナ環境でファイル保存が必要な場合】
+MCPのimage応答はコンテナのファイルシステムに直接保存できない。
 curl -sL https://raw.githubusercontent.com/DaisukeHori/gemini-image-mcp/main/utils/gemini_helper.py -o /home/claude/gemini_helper.py
 使用: from gemini_helper import compose_images; compose_images(images=[{"path":"face.jpg","role":"顔"},{"path":"hair.jpg","role":"髪型"}], instruction="合成して", save_to="result.jpg")`,
     {

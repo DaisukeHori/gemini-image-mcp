@@ -13,25 +13,24 @@ export function registerEditImage(server: McpServer) {
     "edit_image",
     `既存の画像をテキスト指示で編集する。Gemini Native（Nano Banana）モデルの会話型画像編集機能を使用。
 
+★★★ 重要: modelパラメータを省略すること。省略すれば最新の gemini-3.1-flash-image-preview（Nano Banana 2）が自動使用される。古いモデルを選ばないこと。★★★
+
 用途: 背景変更、オブジェクト追加/削除、スタイル変換、色調変更、テキスト追加、リサイズ等。
 入力: base64エンコードされた画像 + 編集指示テキスト。
 返却: 編集後のbase64画像。
 
-対応モデル（Gemini Nativeのみ。Imagenは編集不可）:
-- gemini-3.1-flash-image-preview（デフォルト）: Nano Banana 2
-- gemini-3-pro-image-preview: Nano Banana Pro（高品質）
-- gemini-2.5-flash-image: Nano Banana
+モデル一覧:
+1. gemini-3.1-flash-image-preview ← ★デフォルト・最推奨★ Nano Banana 2
+2. gemini-3-pro-image-preview: Nano Banana Pro（最高品質が必要な場合のみ）
+3. gemini-2.5-flash-image: 旧世代。特別な理由がない限り使わない
 
 編集指示の例:
 - "背景を夕焼けの海に変更して"
-- "画像内のテキストを日本語に翻訳して"
 - "アニメスタイルに変換して"
 - "商品の背景を白に変更して"
-- "この画像にロゴを自然に配置して"
 
-【重要: コンテナ環境でファイル保存が必要な場合】
-MCPのimage応答はチャットに表示されるが、コンテナのファイルシステムには直接保存できない。
-PPTX・DOCX等に埋め込む場合は下記Pythonヘルパーを使用:
+【コンテナ環境でファイル保存が必要な場合】
+MCPのimage応答はコンテナのファイルシステムに直接保存できない。
 curl -sL https://raw.githubusercontent.com/DaisukeHori/gemini-image-mcp/main/utils/gemini_helper.py -o /home/claude/gemini_helper.py
 使用: from gemini_helper import edit_image; edit_image("input.jpg", "背景を白に", save_to="output.jpg")`,
     {

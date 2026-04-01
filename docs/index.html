@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gemini Image MCP Server — AIに画像生成の目を与える</title>
+<meta name="description" content="Claude、Cursor、Windsurf等あらゆるAIクライアントからGemini/Imagenの画像生成を使える。3ツール・6モデル対応のMCPサーバー。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234285F4'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white'>🎨</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--g-blue:#4285F4;--g-blue-dark:#3367D6;--g-blue-light:#E8F0FE;--g-green:#34A853;--g-yellow:#FBBC04;--g-red:#EA4335;--g-text:#202124;--g-text-light:#5F6368;--g-border:#DADCE0;--g-bg:#F8F9FA;--g-white:#FFFFFF;--g-radius:12px;--g-shadow:0 1px 3px rgba(0,0,0,0.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Lexend Deca',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--g-text);background:var(--g-white);-webkit-font-smoothing:antialiased;line-height:1.6}
+.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--g-border);padding:0 24px}
+.nav__inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav__brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--g-text);font-weight:700;font-size:17px}
+.nav__links{display:flex;gap:24px;list-style:none}
+.nav__links a{color:var(--g-text-light);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.15s}
+.nav__links a:hover{color:var(--g-blue)}
+.hero{background:linear-gradient(170deg,var(--g-white) 0%,var(--g-blue-light) 50%,var(--g-white) 100%);padding:80px 24px 60px;text-align:center}
+.hero__inner{max-width:680px;margin:0 auto}
+.hero__tag{display:inline-flex;align-items:center;gap:8px;background:var(--g-white);border:1px solid var(--g-border);border-radius:100px;padding:6px 16px;font-size:13px;color:var(--g-text-light);font-weight:500;margin-bottom:28px;box-shadow:var(--g-shadow)}
+.hero h1{font-size:clamp(32px,5.5vw,48px);font-weight:800;color:var(--g-text);letter-spacing:-0.035em;line-height:1.15;margin-bottom:20px}
+.hero h1 span{color:var(--g-blue)}
+.hero__sub{font-size:17px;color:var(--g-text-light);max-width:540px;margin:0 auto 36px;line-height:1.7}
+.hero__endpoint{display:inline-flex;align-items:center;gap:12px;background:var(--g-white);border:1px solid var(--g-border);border-radius:var(--g-radius);padding:12px 14px 12px 20px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;box-shadow:var(--g-shadow)}
+.section{max-width:960px;margin:0 auto;padding:64px 24px}
+.section__label{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--g-blue);margin-bottom:8px}
+.section__title{font-size:28px;font-weight:700;color:var(--g-text);letter-spacing:-0.025em;margin-bottom:12px}
+.section__desc{font-size:15px;color:var(--g-text-light);max-width:600px;margin-bottom:32px;line-height:1.7}
+.divider{max-width:960px;margin:0 auto;height:1px;background:var(--g-border)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.card{background:var(--g-white);border:1px solid var(--g-border);border-radius:var(--g-radius);padding:28px;transition:box-shadow 0.2s,border-color 0.2s}
+.card:hover{box-shadow:0 8px 30px rgba(0,0,0,0.08);border-color:var(--g-blue)}
+.card h4{font-size:17px;font-weight:700;margin-bottom:8px}
+.card p{font-size:14px;color:var(--g-text-light);line-height:1.65}
+.card code{background:var(--g-bg);padding:2px 7px;border-radius:4px;font-size:12px;font-family:'SF Mono','Fira Code',monospace}
+.badge{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:3px 10px;border-radius:4px;margin-bottom:14px}
+.badge--rec{background:#DBFAE6;color:#00875A}
+.badge--alt{background:var(--g-blue-light);color:var(--g-blue-dark)}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:var(--g-radius);font-family:inherit;font-size:14px;font-weight:600;padding:10px 20px;cursor:pointer;transition:all 0.15s;text-decoration:none}
+.btn--primary{background:var(--g-blue);color:white}
+.btn--primary:hover{background:var(--g-blue-dark)}
+.code-block{background:#1E1E1E;color:#D4D4D4;border-radius:var(--g-radius);padding:16px 20px;overflow-x:auto;font-size:12px;line-height:1.7;font-family:'SF Mono','Fira Code',monospace;margin:12px 0;white-space:pre-wrap;word-break:break-all}
+.specs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.spec{background:var(--g-bg);border-radius:var(--g-radius);padding:18px 20px}
+.spec__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--g-text-light);margin-bottom:4px}
+.spec__value{font-size:15px;font-weight:700;color:var(--g-text)}
+.cta{background:var(--g-text);border-radius:16px;padding:48px 32px;text-align:center;margin-top:16px}
+.cta h3{font-size:24px;font-weight:700;color:white;margin-bottom:12px}
+.cta p{font-size:15px;color:#A0A0A0;margin-bottom:24px}
+.footer{max-width:960px;margin:0 auto;padding:32px 24px 48px;text-align:center;font-size:13px;color:var(--g-text-light)}
+.footer a{color:var(--g-text-light);text-decoration:underline}
+.footer a:hover{color:var(--g-blue)}
+@media(max-width:640px){.nav__links{display:none}.hero{padding:48px 20px 40px}.hero h1{font-size:28px}.section{padding:40px 20px}.card-grid{grid-template-columns:1fr}.hero__endpoint{font-size:11px;flex-wrap:wrap;justify-content:center}}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="nav__inner">
+  <a href="#" class="nav__brand">🎨 Gemini Image MCP</a>
+  <ul class="nav__links">
+    <li><a href="#tools">ツール</a></li>
+    <li><a href="#models">モデル</a></li>
+    <li><a href="#setup">始め方</a></li>
+    <li><a href="https://github.com/DaisukeHori/gemini-image-mcp" target="_blank">GitHub</a></li>
+  </ul>
+</div></nav>
+
+<section class="hero">
+  <div class="hero__inner">
+    <div class="hero__tag">🎨 3 MCP Tools × 6 Models</div>
+    <h1>AIに<span>画像生成</span>の<br>目を与える</h1>
+    <p class="hero__sub">Gemini / Imagen の画像生成AIを、Claude・Cursor・Windsurf等あらゆるMCPクライアントから使えるサーバー。接続するだけ。</p>
+    <div class="hero__endpoint">
+      <span style="color:var(--g-text-light);font-size:12px">ENDPOINT</span>
+      <span>https://gemini-image-mcp.vercel.app/api/mcp</span>
+      <button class="btn btn--primary" onclick="navigator.clipboard.writeText('https://gemini-image-mcp.vercel.app/api/mcp');this.textContent='✓ コピー';setTimeout(()=>this.textContent='コピー',2000)">コピー</button>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section">
+  <div class="section__label">💡 WHAT YOU CAN DO</div>
+  <h2 class="section__title">使用例</h2>
+  <div style="max-width:640px;margin:0 auto">
+    <div style="background:var(--g-white);border:1px solid var(--g-border);border-radius:12px;padding:24px;font-size:14px;line-height:1.8">
+      <div style="margin-bottom:16px"><div style="font-weight:700;color:var(--g-blue);margin-bottom:4px">👤 あなた</div><div style="background:var(--g-blue-light);padding:8px 12px;border-radius:8px">桜並木を歩く猫の水彩画を描いて</div></div>
+      <div style="margin-bottom:16px"><div style="font-weight:700;margin-bottom:4px">🤖 AI</div><div style="background:var(--g-bg);padding:12px 16px;border-radius:8px;font-size:13px">Gemini Image MCPで画像を生成しました。<br><br>🖼️ [生成された水彩画が表示される]</div></div>
+      <div style="margin-bottom:16px"><div style="font-weight:700;color:var(--g-blue);margin-bottom:4px">👤 あなた</div><div style="background:var(--g-blue-light);padding:8px 12px;border-radius:8px">この画像の背景を夕焼けの富士山に変えて</div></div>
+      <div><div style="font-weight:700;margin-bottom:4px">🤖 AI</div><div style="background:var(--g-bg);padding:12px 16px;border-radius:8px;font-size:13px">画像を編集しました。<br><br>🖼️ [背景が変更された画像が表示される]</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="tools" class="section">
+  <div class="section__label">🔧 TOOLS</div>
+  <h2 class="section__title">3つのMCPツール</h2>
+  <div class="card-grid">
+    <div class="card" style="border-top:3px solid var(--g-blue)">
+      <span class="badge badge--alt">メイン</span>
+      <h4>🖼️ generate_image</h4>
+      <p>テキストプロンプトから画像生成。全6モデル対応。Imagenモデルではアスペクト比指定・複数枚同時生成が可能。</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--g-green)">
+      <span class="badge badge--rec">編集</span>
+      <h4>✏️ edit_image</h4>
+      <p>既存画像 + テキスト指示で画像編集。背景変更、スタイル変換、オブジェクト追加削除等。Gemini Nativeモデルのみ。</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--g-yellow)">
+      <h4>📋 list_models</h4>
+      <p>利用可能な6モデルの一覧と特徴・価格・推奨用途を表示。モデル選択に迷った時に。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="models" class="section">
+  <div class="section__label">🧠 MODELS</div>
+  <h2 class="section__title">6つの画像生成モデル</h2>
+  <p class="section__desc">用途に応じて最適なモデルを自動選択。または明示的に指定可能。</p>
+  <div style="overflow-x:auto">
+    <table style="width:100%;font-size:13px;border-collapse:collapse;border:1px solid var(--g-border);border-radius:var(--g-radius)">
+      <thead><tr style="background:var(--g-bg)"><th style="padding:10px 14px;text-align:left">モデル</th><th style="padding:10px 14px;text-align:left">価格</th><th style="padding:10px 14px;text-align:left">解像度</th><th style="padding:10px 14px;text-align:left">生成</th><th style="padding:10px 14px;text-align:left">編集</th></tr></thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--g-border);background:#F0F7FF"><td style="padding:10px 14px;font-weight:700">⭐ Nano Banana 2</td><td>$0.045</td><td>1K〜4K</td><td>✅</td><td>✅</td></tr>
+        <tr style="border-bottom:1px solid var(--g-border)"><td style="padding:10px 14px">Nano Banana Pro</td><td>$0.134</td><td>1K〜4K</td><td>✅</td><td>✅</td></tr>
+        <tr style="border-bottom:1px solid var(--g-border)"><td style="padding:10px 14px">Nano Banana</td><td>$0.039</td><td>1K</td><td>✅</td><td>✅</td></tr>
+        <tr style="border-bottom:1px solid var(--g-border)"><td style="padding:10px 14px">Imagen 4 Fast</td><td>$0.02</td><td>1K</td><td>✅</td><td>❌</td></tr>
+        <tr style="border-bottom:1px solid var(--g-border)"><td style="padding:10px 14px">Imagen 4</td><td>$0.04</td><td>1K</td><td>✅</td><td>❌</td></tr>
+        <tr><td style="padding:10px 14px">Imagen 4 Ultra</td><td>$0.06</td><td>2K</td><td>✅</td><td>❌</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="setup" class="section">
+  <div class="section__label">🚀 QUICK START</div>
+  <h2 class="section__title">2ステップで始める</h2>
+  <div style="display:grid;gap:16px;max-width:640px;margin:0 auto">
+    <div class="card"><h4>① Gemini API Key を取得</h4><p><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--g-blue)">Google AI Studio</a> → API Keyを作成してコピー。無料枠あり。</p></div>
+    <div class="card"><h4>② MCPサーバーに接続</h4>
+      <p>お使いのAIクライアントに以下を設定:</p>
+      <div class="code-block">URL: https://gemini-image-mcp.vercel.app/api/mcp
+Authorization: Bearer &lt;your-gemini-api-key&gt;</div>
+      <p style="margin-top:8px;font-size:13px;color:var(--g-text-light)">Claude Desktop/Cursor/VS Codeの場合は <a href="https://github.com/DaisukeHori/gemini-image-mcp#ステップ2-mcpサーバーを接続" style="color:var(--g-blue)">README</a> を参照</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section">
+  <div class="section__label">🔒 SECURITY</div>
+  <h2 class="section__title">セキュリティ</h2>
+  <div style="display:grid;gap:12px;max-width:640px;margin:0 auto">
+    <div class="card"><h4>✅ HTTPS暗号化</h4><p>全通信はTLSで保護。API Keyが平文で流れることはありません。</p></div>
+    <div class="card"><h4>✅ ステートレス</h4><p>API Keyはリクエスト処理中のみ使用。保存もログ出力もしません。</p></div>
+    <div class="card"><h4>✅ ソースコード全公開</h4><p><a href="https://github.com/DaisukeHori/gemini-image-mcp" target="_blank" style="color:var(--g-blue)">GitHub</a> で全処理を確認できます。</p></div>
+    <div class="card"><h4>🏢 自分でデプロイも可能</h4><p>Vercelにワンクリックデプロイして <code>api_key</code> モードで運用可能。</p></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section">
+  <div class="section__label">⚙️ TECH</div>
+  <h2 class="section__title">技術仕様</h2>
+  <div class="specs">
+    <div class="spec"><div class="spec__label">Framework</div><div class="spec__value">Next.js 15</div></div>
+    <div class="spec"><div class="spec__label">Transport</div><div class="spec__value">Streamable HTTP</div></div>
+    <div class="spec"><div class="spec__label">Protocol</div><div class="spec__value">MCP 2025-03-26</div></div>
+    <div class="spec"><div class="spec__label">Auth</div><div class="spec__value">2 Modes</div></div>
+    <div class="spec"><div class="spec__label">API</div><div class="spec__value">Gemini + Imagen</div></div>
+    <div class="spec"><div class="spec__label">Hosting</div><div class="spec__value">Vercel</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section" style="text-align:center">
+  <div class="cta">
+    <h3>使い始めよう</h3>
+    <p>API Keyを取得して接続するだけ。2分で画像生成が使えるようになります。</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="https://aistudio.google.com/apikey" target="_blank" class="btn btn--primary" style="font-size:15px;padding:12px 28px">🔑 API Key 取得</a>
+      <a href="https://github.com/DaisukeHori/gemini-image-mcp" target="_blank" class="btn" style="font-size:15px;padding:12px 28px;background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2)">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><a href="https://github.com/DaisukeHori/gemini-image-mcp" target="_blank">GitHub</a> · <a href="https://revol.co.jp" target="_blank">Revol Co., Ltd.</a> · MIT License</footer>
+
+</body>
+</html>

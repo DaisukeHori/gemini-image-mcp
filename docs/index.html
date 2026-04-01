@@ -52,6 +52,19 @@ body{font-family:'Lexend Deca',-apple-system,BlinkMacSystemFont,sans-serif;color
 .footer{max-width:960px;margin:0 auto;padding:32px 24px 48px;text-align:center;font-size:13px;color:var(--g-text-light)}
 .footer a{color:var(--g-text-light);text-decoration:underline}
 .footer a:hover{color:var(--g-blue)}
+.accordion{background:var(--g-white);border:1px solid var(--g-border);border-radius:var(--g-radius);overflow:hidden;transition:border-color 0.2s}
+.accordion:hover{border-color:var(--g-blue)}
+.accordion__trigger{width:100%;display:flex;align-items:center;gap:12px;padding:16px 20px;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left}
+.accordion__icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--g-blue-light);color:var(--g-blue);font-size:18px;flex-shrink:0}
+.accordion__content{flex:1;display:flex;flex-direction:column;gap:2px}
+.accordion__content strong{font-size:15px;color:var(--g-text)}
+.accordion__desc{font-size:12px;color:var(--g-text-light)}
+.accordion__chevron{transition:transform 0.2s;color:var(--g-text-light);flex-shrink:0}
+.accordion__chevron--open{transform:rotate(180deg)}
+.accordion__body{padding:0 20px 20px;display:none}
+.accordion__body ol{font-size:13px;line-height:2;color:var(--g-text);padding-left:20px;margin:0 0 12px}
+.accordion__body .code-block{margin:12px 0}
+.callout{padding:10px 14px;background:#FFF8E1;border-radius:8px;font-size:13px;line-height:1.6;margin-bottom:12px;color:#795548}
 @media(max-width:640px){.nav__links{display:none}.hero{padding:48px 20px 40px}.hero h1{font-size:28px}.section{padding:40px 20px}.card-grid{grid-template-columns:1fr}.hero__endpoint{font-size:11px;flex-wrap:wrap;justify-content:center}}
 </style>
 </head>
@@ -62,7 +75,7 @@ body{font-family:'Lexend Deca',-apple-system,BlinkMacSystemFont,sans-serif;color
   <ul class="nav__links">
     <li><a href="#tools">ツール</a></li>
     <li><a href="#models">モデル</a></li>
-    <li><a href="#setup">始め方</a></li>
+    <li><a href="#integration">接続方法</a></li>
     <li><a href="https://github.com/DaisukeHori/gemini-image-mcp" target="_blank">GitHub</a></li>
   </ul>
 </div></nav>
@@ -148,16 +161,20 @@ body{font-family:'Lexend Deca',-apple-system,BlinkMacSystemFont,sans-serif;color
 
 <section id="setup" class="section">
   <div class="section__label">🚀 QUICK START</div>
-  <h2 class="section__title">2ステップで始める</h2>
+  <h2 class="section__title">始め方</h2>
   <div style="display:grid;gap:16px;max-width:640px;margin:0 auto">
-    <div class="card"><h4>① Gemini API Key を取得</h4><p><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--g-blue)">Google AI Studio</a> → API Keyを作成してコピー。無料枠あり。</p></div>
-    <div class="card"><h4>② MCPサーバーに接続</h4>
-      <p>お使いのAIクライアントに以下を設定:</p>
-      <div class="code-block">URL: https://gemini-image-mcp-two.vercel.app/api/mcp
-Authorization: Bearer &lt;your-gemini-api-key&gt;</div>
-      <p style="margin-top:8px;font-size:13px;color:var(--g-text-light)">Claude Desktop/Cursor/VS Codeの場合は <a href="https://github.com/DaisukeHori/gemini-image-mcp#ステップ2-mcpサーバーを接続" style="color:var(--g-blue)">README</a> を参照</p>
-    </div>
+    <div class="card"><h4>① Gemini API Key を取得</h4><p><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--g-blue)">Google AI Studio</a> → API Keyを作成してコピー。</p><p style="margin-top:6px;font-size:13px;color:var(--g-text-light)">無料枠あり（約500リクエスト/日）。有料はPay-as-you-goで$0.02〜/枚。</p></div>
+    <div class="card"><h4>② 下のクライアント別設定をコピーして接続</h4><p>お使いのAIクライアントを選んで、設定をコピーするだけ。</p></div>
   </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="integration" class="section">
+  <div class="section__label">🔌 INTEGRATION</div>
+  <h2 class="section__title">クライアント別 接続設定</h2>
+  <p class="section__desc">お使いのAIクライアントを選択して、設定をコピー。<code>YOUR_GEMINI_API_KEY</code> を実際のキーに置き換えてください。</p>
+  <div id="clients-container" style="display:flex;flex-direction:column;gap:8px;max-width:700px;margin:0 auto"></div>
 </section>
 
 <div class="divider"></div>
@@ -202,6 +219,52 @@ Authorization: Bearer &lt;your-gemini-api-key&gt;</div>
 </section>
 
 <footer class="footer"><a href="https://github.com/DaisukeHori/gemini-image-mcp" target="_blank">GitHub</a> · <a href="https://revol.co.jp" target="_blank">Revol Co., Ltd.</a> · MIT License</footer>
+
+<script>
+const MCP_URL="https://gemini-image-mcp-two.vercel.app/api/mcp";
+const KEY_PH="YOUR_GEMINI_API_KEY";
+
+function copyText(t,b){navigator.clipboard.writeText(t).catch(()=>{const e=document.createElement("textarea");e.value=t;document.body.appendChild(e);e.select();document.execCommand("copy");document.body.removeChild(e)});const o=b.textContent;b.textContent="✓ コピー完了";setTimeout(()=>b.textContent=o,2000)}
+function escHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+const CLIENTS=[
+  {id:"claude-web",name:"Claude.ai",icon:"◈",desc:"Web版（Pro/Max/Team/Enterprise）",
+    copy:`${MCP_URL}?token=${KEY_PH}`,
+    label:"URLをコピー",
+    steps:['Settings → Connectors →「カスタムコネクタを追加」','下のURLを貼り付け（<code>YOUR_GEMINI_API_KEY</code> を実際のキーに置換）'],
+    note:"⚠️ URLにAPIキーが含まれます。共有PCでの利用にはご注意ください。"},
+  {id:"claude-desktop",name:"Claude Desktop",icon:"◇",desc:"デスクトップアプリ",
+    copy:JSON.stringify({mcpServers:{"gemini-image":{command:"npx",args:["mcp-remote",MCP_URL,"--header",`Authorization:Bearer ${KEY_PH}`]}}},null,2),
+    label:"JSONをコピー",
+    steps:["macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>","Windows: <code>%APPDATA%\\\\Claude\\\\claude_desktop_config.json</code>","<code>YOUR_GEMINI_API_KEY</code> を置換 → Claude Desktopを再起動"]},
+  {id:"claude-code",name:"Claude Code",icon:"⌘",desc:"ターミナルCLI",
+    copy:`claude mcp add --transport http gemini-image ${MCP_URL} --header "Authorization:Bearer ${KEY_PH}"`,
+    label:"コマンドをコピー",
+    steps:["<code>YOUR_GEMINI_API_KEY</code> を置換してターミナルで実行"]},
+  {id:"cursor",name:"Cursor",icon:"⟐",desc:"AIコードエディタ",
+    copy:JSON.stringify({mcpServers:{"gemini-image":{type:"http",url:MCP_URL,headers:{Authorization:`Bearer ${KEY_PH}`}}}},null,2),
+    label:"JSONをコピー",
+    steps:["Settings → Tools & Integrations → New MCP Server","下のJSONを貼り付け"]},
+  {id:"vscode",name:"VS Code",icon:"⬡",desc:"Copilot Chat (MCP対応版)",
+    copy:JSON.stringify({mcpServers:{"gemini-image":{type:"http",url:MCP_URL,headers:{Authorization:`Bearer ${KEY_PH}`}}}},null,2),
+    label:"JSONをコピー",
+    steps:["<code>.vscode/mcp.json</code> を作成して貼り付け"]},
+  {id:"windsurf",name:"Windsurf",icon:"◆",desc:"AIコードエディタ",
+    copy:JSON.stringify({mcpServers:{"gemini-image":{command:"npx",args:["mcp-remote",MCP_URL,"--header",`Authorization:Bearer ${KEY_PH}`]}}},null,2),
+    label:"JSONをコピー",
+    steps:["Cascade → MCP servers → Add Server"]},
+  {id:"api",name:"Anthropic API",icon:"⬢",desc:"MCP Connector（messages API）",
+    copy:JSON.stringify({mcp_servers:[{type:"url",url:MCP_URL,name:"gemini-image",authorization_token:`Bearer ${KEY_PH}`}],tools:[{type:"mcp_toolset",mcp_server_name:"gemini-image"}]},null,2),
+    label:"JSONをコピー",
+    steps:['messages API の body に追加','ヘッダー: <code>"anthropic-beta": "mcp-client-2025-11-20"</code>']},
+];
+
+const chevronSvg='<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+document.getElementById("clients-container").innerHTML=CLIENTS.map((c,i)=>`<div class="accordion" id="client-${i}"><button class="accordion__trigger" onclick="toggleAccordion('client-${i}')"><span class="accordion__icon">${c.icon}</span><span class="accordion__content"><strong>${c.name}</strong><span class="accordion__desc">${c.desc}</span></span><span class="accordion__chevron">${chevronSvg}</span></button><div class="accordion__body"><ol>${c.steps.map(s=>`<li>${s}</li>`).join("")}</ol>${c.note?`<div class="callout">${c.note}</div>`:""}<pre class="code-block"><code>${escHtml(c.copy)}</code></pre><button class="btn btn--primary" style="margin-top:4px" onclick="copyText(CLIENTS[${i}].copy,this)">${c.label}</button></div></div>`).join("");
+
+function toggleAccordion(id){const el=document.getElementById(id);const body=el.querySelector(".accordion__body");const chev=el.querySelector(".accordion__chevron");const open=body.style.display!=="none";body.style.display=open?"none":"block";chev.classList.toggle("accordion__chevron--open",!open)}
+</script>
 
 </body>
 </html>

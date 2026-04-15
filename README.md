@@ -188,3 +188,5 @@ Next.js 15 / TypeScript / Vercel / MCP SDK / Gemini API / Zod
 ## ライセンス
 
 MIT License
+
+<!-- mcp-doctor: verified 2026-04-15 -->

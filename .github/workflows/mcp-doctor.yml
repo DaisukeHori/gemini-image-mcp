@@ -60,7 +60,7 @@ jobs:
             - 認証情報をハードコードしない
             - ビルドが通らない修正はPRにしない
             - 修正に自信がない場合はIssueにコメントで報告して終了
-          claude_args: "--max-turns 20"
+          claude_args: "--max-turns 30"
 
   # ── PR ビルドチェック → 自動マージ ──
   auto-merge:

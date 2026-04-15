@@ -1,64 +1,62 @@
-# Claude向けスキル: Gemini画像生成ヘルパー
+# CLAUDE.md - MCP サーバー自動修復ガイド
 
-このファイルは、Claudeがコンテナ環境（claude.ai / Claude Code等）で画像生成を行う際の手順書です。
+## プロジェクト概要
+このリポジトリは MCP (Model Context Protocol) サーバーであり、Vercel にデプロイされている。
+Streamable HTTP トランスポートを使用し、Claude.ai から直接接続して利用される。
 
-## 問題
+## 技術スタック
+- **言語**: TypeScript
+- **ランタイム**: Node.js 22+
+- **デプロイ**: Vercel (Serverless Functions)
+- **トランスポート**: Streamable HTTP (`/api/mcp` エンドポイント)
+- **認証**: `x-api-key` ヘッダーによる API キー認証
 
-- MCP経由で生成した画像はチャット上に表示されるが、コンテナのファイルシステムには保存できない
-- コンテナから `generativelanguage.googleapis.com` に直接アクセスできない（プロキシでブロック）
+## コード規約
+- TypeScript strict mode 必須
+- ESM (`"type": "module"`)
+- エラーメッセージは英語、コメントは日本語可
+- すべてのツールに明確な `description` を付与
+- ツール名は `snake_case` で `リソース_アクション` 形式（例: `contact_search`, `dns_create_record`）
 
-## 解決策
+## Issue 対応フロー（mcp-doctor からの自動起票 Issue）
 
-`utils/gemini_helper.py` を使って、MCPサーバー（Vercel）をHTTPプロキシとして経由し、画像を生成→ファイル保存する。
+### 1. Issue の分析
+- Issue 本文のチェンジログ URL を確認
+- 上流 API の変更内容を特定
+- 影響を受けるツール（関数）を列挙
 
+### 2. ブランチ作成
+- ブランチ名: `fix/api-update-YYYY-MM-DD` または `fix/health-{server-name}-YYYY-MM-DD`
+- main ブランチから作成
+
+### 3. コード修正
+- 上流 API の変更に合わせてリクエスト/レスポンスのスキーマを更新
+- 非推奨になった API エンドポイントを新しいものに置換
+- 新しい API が追加された場合は対応するツールを追加
+- 削除された API があればツールを削除し、README を更新
+
+### 4. テスト
+- `npm run build` が成功することを確認
+- TypeScript の型エラーがないことを確認
+- 可能であればドライランテスト（副作用のないツールの呼び出し）
+
+### 5. PR 作成
+- PRタイトル: `fix: [API名] API変更対応` または `fix: health check failure`
+- PR本文に変更内容のサマリーを記載
+- 対応する Issue を `Closes #XX` で紐付け
+- ラベル: `mcp-doctor`
+
+## ディレクトリ構造
 ```
-コンテナ → HTTPS → gemini-image-mcp-two.vercel.app → Gemini API
-                    （Vercel上で中継）
-        ↓
-   base64で返却 → ファイル保存可能
+src/
+├── index.ts          # Vercel エントリポイント（/api/mcp）
+├── tools/            # ツール定義（1ファイル1ツールまたは機能グループ）
+├── types/            # 型定義
+└── utils/            # ユーティリティ（認証、エラーハンドリング等）
 ```
 
-## 使い方
-
-### セットアップ（会話の最初に1回だけ）
-
-```bash
-curl -sL https://raw.githubusercontent.com/DaisukeHori/gemini-image-mcp/main/utils/gemini_helper.py -o /home/claude/gemini_helper.py
-```
-
-### 画像生成
-
-```python
-import sys; sys.path.insert(0, "/home/claude")
-from gemini_helper import generate_image, edit_image, compose_images, generate_batch
-
-# テキスト→画像
-generate_image("A cute cat", save_to="cat.jpg")
-
-# 画像編集
-edit_image("cat.jpg", "ジブリ風に変換", save_to="cat_ghibli.jpg")
-
-# 複数画像合成
-compose_images(
-    images=[
-        {"path": "face.jpg", "role": "顔写真"},
-        {"path": "hair.jpg", "role": "ヘアスタイル"},
-    ],
-    instruction="顔写真にヘアスタイルを適用",
-    save_to="result.jpg"
-)
-
-# バッチ生成（PPTX挿絵等）
-generate_batch([
-    {"prompt": "...", "filename": "slide01.jpg"},
-    {"prompt": "...", "filename": "slide02.jpg"},
-], output_dir="images")
-```
-
-## 注意事項
-
-- MCP API Key: 環境変数 `MCP_API_KEY` で設定すること（ソースコードにハードコードしない）
-- MCPエンドポイント: `https://gemini-image-mcp-two.vercel.app/api/mcp`
-- 認証モード: `api_key`（Gemini API Keyはサーバー側環境変数に固定。クライアントはMCP_API_KEYで認証）
-- 1リクエストあたりの処理時間: 5-15秒
-- base64画像サイズ: 500KB-1.5MB程度
+## 重要な注意事項
+- **認証情報をコードにハードコードしない**
+- Vercel の環境変数で管理されるシークレットには触れない
+- `package.json` の依存関係を変更した場合は `npm install` → `package-lock.json` もコミット
+- README.md のツール数やツール一覧も更新する
